@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+  <title>KakaoTalk Web 관리자</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      background: #FEE500;
+      color: #1a1a1a;
+      padding: 0 20px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      -webkit-app-region: drag;
+    }
+    .header svg { flex-shrink: 0; }
+    .header h1 { font-size: 15px; font-weight: 700; }
+    .header .spacer { flex: 1; }
+    .btn-all {
+      -webkit-app-region: no-drag;
+      border: none;
+      padding: 7px 18px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #1a1a1a;
+      color: #FEE500;
+      transition: background .15s;
+    }
+    .btn-all:hover { background: #333; }
+    .btn-all.stop { background: #ff4444; color: #fff; }
+    .btn-all.stop:hover { background: #cc0000; }
+
+    /* ── 상태 카드 ── */
+    .status-bar {
+      background: #222;
+      padding: 10px 16px;
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #2e2e2e;
+    }
+    .card {
+      background: #2a2a2a;
+      border: 1px solid #353535;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #444;
+      flex-shrink: 0;
+      transition: background .3s, box-shadow .3s;
+    }
+    .dot.on {
+      background: #4caf50;
+      box-shadow: 0 0 7px #4caf50;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+    .card-info { flex: 1; }
+    .card-info h3 { font-size: 13px; font-weight: 600; }
+    .card-info p { font-size: 11px; color: #777; margin-top: 2px; }
+    .card-btns { display: flex; gap: 6px; }
+    .btn-icon {
+      border: 1px solid #444;
+      background: transparent;
+      color: #aaa;
+      padding: 5px 11px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-icon:hover { background: #333; color: #fff; border-color: #555; }
+    .btn-run  { background: #FEE500 !important; color: #1a1a1a !important; border-color: #FEE500 !important; font-weight: 700; }
+    .btn-run:hover { background: #FFD600 !important; }
+    .btn-kill { background: #ff4444 !important; color: #fff !important; border-color: #ff4444 !important; font-weight: 700; }
+    .btn-kill:hover { background: #cc0000 !important; }
+
+    /* ── 툴바 ── */
+    .toolbar {
+      background: #222;
+      padding: 7px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #2e2e2e;
+    }
+    .chip {
+      border: 1px solid #3a3a3a;
+      background: transparent;
+      color: #888;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .chip.active { background: #FEE500; color: #1a1a1a; border-color: #FEE500; font-weight: 700; }
+    .chip:not(.active):hover { background: #2e2e2e; color: #ccc; }
+    .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .auto-scroll-label { font-size: 11px; color: #777; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    .auto-scroll-label input { cursor: pointer; accent-color: #FEE500; }
+    .btn-clear {
+      border: 1px solid #3a3a3a;
+      background: transparent;
+      color: #777;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-clear:hover { background: #2e2e2e; color: #ccc; }
+
+    /* ── 로그 뷰어 ── */
+    .log-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 4px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    .log-wrap::-webkit-scrollbar { width: 5px; }
+    .log-wrap::-webkit-scrollbar-track { background: #1a1a1a; }
+    .log-wrap::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
+
+    .log-row {
+      display: flex;
+      gap: 8px;
+      padding: 1px 8px;
+      border-radius: 3px;
+    }
+    .log-row:hover { background: rgba(255,255,255,.025); }
+    .log-time { color: #4a4a4a; min-width: 78px; flex-shrink: 0; }
+    .log-badge {
+      min-width: 56px;
+      text-align: center;
+      border-radius: 3px;
+      padding: 0 4px;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+      letter-spacing: .5px;
+    }
+    .badge-server { background: rgba(254,229,0,.12); color: #FEE500; }
+    .badge-client { background: rgba(100,181,246,.12); color: #64B5F6; }
+    .badge-info   { background: rgba(129,199,132,.12); color: #81C784; }
+    .log-msg { flex: 1; white-space: pre-wrap; word-break: break-all; }
+    .msg-stdout { color: #d4d4d4; }
+    .msg-stderr { color: #FF7070; }
+    .msg-info   { color: #81C784; }
+
+    .empty {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #3a3a3a;
+      font-size: 13px;
+      gap: 10px;
+    }
+    .empty svg { opacity: .3; }
+  </style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="#1a1a1a">
+    <path d="M12 2C6.48 2 2 5.92 2 10.76c0 2.99 1.66 5.64 4.21 7.26l-.84 3.15a.5.5 0 00.73.57l3.71-2.2c.69.11 1.39.17 2.19.17 5.52 0 10-3.92 10-8.76S17.52 2 12 2z"/>
+  </svg>
+  <h1>KakaoTalk Web 관리자</h1>
+  <span class="spacer"></span>
+  <button class="btn-all" id="btnAll" onclick="toggleAll()">전체 시작</button>
+</div>
+
+<!-- 상태 카드 -->
+<div class="status-bar">
+  <div class="card">
+    <div class="dot" id="dotServer"></div>
+    <div class="card-info">
+      <h3>백엔드 서버</h3>
+      <p id="txtServer">중지됨 · :4000</p>
+    </div>
+    <div class="card-btns">
+      <button class="btn-icon" onclick="api.openUrl('http://localhost:4000')">브라우저</button>
+      <button class="btn-icon btn-run" id="btnServer" onclick="toggle('server')">시작</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="dot" id="dotClient"></div>
+    <div class="card-info">
+      <h3>프론트엔드 클라이언트</h3>
+      <p id="txtClient">중지됨 · :3000</p>
+    </div>
+    <div class="card-btns">
+      <button class="btn-icon" onclick="api.openUrl('http://localhost:3000')">브라우저</button>
+      <button class="btn-icon btn-run" id="btnClient" onclick="toggle('client')">시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- 툴바 -->
+<div class="toolbar">
+  <button class="chip active" id="chip-all"    onclick="setFilter('all')">전체</button>
+  <button class="chip"        id="chip-server" onclick="setFilter('server')">서버</button>
+  <button class="chip"        id="chip-client" onclick="setFilter('client')">클라이언트</button>
+  <button class="chip"        id="chip-error"  onclick="setFilter('error')">오류</button>
+  <div class="toolbar-right">
+    <label class="auto-scroll-label">
+      <input type="checkbox" id="chkScroll" checked> 자동 스크롤
+    </label>
+    <button class="btn-clear" onclick="clearLogs()">지우기</button>
+  </div>
+</div>
+
+<!-- 로그 뷰어 -->
+<div class="log-wrap" id="logWrap">
+  <div class="empty" id="empty">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="#888">
+      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+    </svg>
+    서버를 시작하면 로그가 표시됩니다
+  </div>
+</div>
+
+<script>
+  let filter = 'all';
+  let logs   = [];
+  let st     = { server: false, client: false };
+
+  // 초기 상태 조회
+  api.status().then(applyStatus);
+  api.onStatus(applyStatus);
+  api.onLog(addLog);
+
+  function applyStatus(s) {
+    st = s;
+
+    setDot('dotServer', s.server);
+    setDot('dotClient', s.client);
+
+    document.getElementById('txtServer').textContent = s.server ? '실행 중 · :4000' : '중지됨 · :4000';
+    document.getElementById('txtClient').textContent = s.client ? '실행 중 · :3000' : '중지됨 · :3000';
+
+    setBtn(document.getElementById('btnServer'), s.server);
+    setBtn(document.getElementById('btnClient'), s.client);
+
+    const all = s.server && s.client;
+    const btnAll = document.getElementById('btnAll');
+    btnAll.textContent = all ? '전체 중지' : '전체 시작';
+    btnAll.className = all ? 'btn-all stop' : 'btn-all';
+  }
+
+  function setDot(id, on) {
+    document.getElementById(id).className = 'dot' + (on ? ' on' : '');
+  }
+
+  function setBtn(el, running) {
+    if (running) {
+      el.textContent = '중지';
+      el.className = 'btn-icon btn-kill';
+    } else {
+      el.textContent = '시작';
+      el.className = 'btn-icon btn-run';
+    }
+  }
+
+  function toggle(type) {
+    const running = type === 'server' ? st.server : st.client;
+    running ? api.stop(type) : api.start(type);
+  }
+
+  function toggleAll() {
+    if (st.server && st.client) {
+      api.stop('server'); api.stop('client');
+    } else {
+      if (!st.server) api.start('server');
+      if (!st.client) api.start('client');
+    }
+  }
+
+  function addLog(data) {
+    logs.push(data);
+    const empty = document.getElementById('empty');
+    if (empty) empty.remove();
+    if (visible(data)) renderRow(data);
+  }
+
+  function visible(d) {
+    if (filter === 'all')    return true;
+    if (filter === 'server') return d.source === 'server';
+    if (filter === 'client') return d.source === 'client';
+    if (filter === 'error')  return d.type === 'stderr';
+    return true;
+  }
+
+  function renderRow(d) {
+    const wrap = document.getElementById('logWrap');
+    const row  = document.createElement('div');
+    row.className = 'log-row';
+
+    const t = new Date(d.timestamp).toLocaleTimeString('ko-KR', { hour12: false });
+    const badgeClass = d.source === 'server' ? 'badge-server' : d.source === 'client' ? 'badge-client' : 'badge-info';
+    const label      = d.source === 'server' ? 'SERVER' : d.source === 'client' ? 'CLIENT' : 'INFO';
+    const msgClass   = d.type === 'stderr' ? 'msg-stderr' : d.type === 'info' ? 'msg-info' : 'msg-stdout';
+
+    row.innerHTML =
+      `<span class="log-time">${t}</span>` +
+      `<span class="log-badge ${badgeClass}">${label}</span>` +
+      `<span class="log-msg ${msgClass}">${esc(d.message.trimEnd())}</span>`;
+
+    wrap.appendChild(row);
+    if (document.getElementById('chkScroll').checked) {
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function setFilter(f) {
+    filter = f;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('chip-' + f).classList.add('active');
+    rebuildLog();
+  }
+
+  function rebuildLog() {
+    const wrap = document.getElementById('logWrap');
+    wrap.innerHTML = '';
+    const visible_logs = logs.filter(visible);
+    if (visible_logs.length === 0) {
+      wrap.innerHTML = '<div class="empty">표시할 로그가 없습니다</div>';
+    } else {
+      visible_logs.forEach(renderRow);
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+  }
+
+  function clearLogs() {
+    logs = [];
+    const wrap = document.getElementById('logWrap');
+    wrap.innerHTML = '<div class="empty" id="empty">서버를 시작하면 로그가 표시됩니다</div>';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "kakaotalk-web-admin",
+  "version": "1.0.0",
+  "description": "KakaoTalk Web 서버 관리자",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "create-icon": "node create-icon.js"
+  },
+  "dependencies": {
+    "jimp": "^0.16.13",
+    "png-to-ico": "^2.1.8"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
