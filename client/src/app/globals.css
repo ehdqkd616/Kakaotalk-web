@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    'Noto Sans KR', sans-serif;
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* 채팅 배경 패턴 */
+.chat-bg {
+  background-color: #b2c7d9;
+  background-image: none;
+}
+
+/* 말풍선 꼬리 */
+.bubble-sent::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  bottom: 6px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid #ffeb33;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.bubble-received::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  bottom: 6px;
+  width: 0;
+  height: 0;
+  border-right: 7px solid #ffffff;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+/* 입력창 포커스 */
+textarea:focus {
+  outline: none;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.msg-appear {
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* 타이핑 점 애니메이션 */
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+}
+
+.typing-dot {
+  display: inline-block;
+  animation: bounce 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
