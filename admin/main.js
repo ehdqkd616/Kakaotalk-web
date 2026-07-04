@@ -25,8 +25,20 @@ function parseEnv() {
 }
 
 // ── 프로세스 관리 ─────────────────────────────────────────────────────────────
+function killPort(port) {
+  try {
+    execSync(
+      `powershell -Command "Get-NetTCPConnection -LocalPort ${port} -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }"`,
+      { stdio: 'ignore' }
+    );
+  } catch {}
+}
+
 function startProcess(type) {
   if (procs[type]) return;
+
+  const port = type === 'server' ? 4000 : 3000;
+  killPort(port);
 
   const cwd = path.join(ROOT_DIR, type === 'server' ? 'server' : 'client');
   const envVars = parseEnv();

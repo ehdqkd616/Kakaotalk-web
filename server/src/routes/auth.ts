@@ -47,8 +47,9 @@ router.get('/kakao/callback', async (req: Request, res: Response) => {
 
     res.cookie('token', jwtToken, COOKIE_OPTIONS);
     res.redirect(`${config.clientUrl}/chat`);
-  } catch (err) {
-    console.error('[AUTH] 카카오 콜백 오류:', err);
+  } catch (err: any) {
+    const detail = err?.response?.data ?? err?.message ?? String(err);
+    console.error('[AUTH] 카카오 콜백 오류:', detail);
     res.redirect(`${config.clientUrl}/login?error=server_error`);
   }
 });

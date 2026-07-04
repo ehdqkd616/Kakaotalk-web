@@ -29,6 +29,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+auth-error.log
+
+# ── DB 데이터 ──
+server/data/
 
 # ── 에디터 ──
 .vscode/settings.json

@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -10,16 +9,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function LoginPage() {
-  const router = useRouter();
   const params = useSearchParams();
   const errorCode = params.get('error');
-
-  useEffect(() => {
-    authApi
-      .me()
-      .then(() => router.replace('/chat'))
-      .catch(() => {});
-  }, [router]);
 
   const handleLogin = () => {
     window.location.href = authApi.loginUrl();
