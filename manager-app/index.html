@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+<title>KakaoTalk Web Manager</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Header ── */
+.header {
+  background: #FEE500;
+  color: #191919;
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+.header h1 { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+.spacer { flex: 1; }
+.header-btn {
+  -webkit-app-region: no-drag;
+  background: rgba(0,0,0,0.12);
+  color: #191919;
+  border: 1px solid rgba(0,0,0,0.15);
+  padding: 5px 13px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.header-btn:hover { background: rgba(0,0,0,0.2); }
+
+/* ── Controls ── */
+.controls {
+  background: #161b22;
+  border-bottom: 1px solid #21262d;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.card {
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-name { font-size: 13px; font-weight: 600; }
+.card-port { font-size: 11px; color: #8b949e; margin-top: 1px; }
+
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #484f58;
+  flex-shrink: 0;
+  transition: background 0.4s, box-shadow 0.4s;
+}
+.dot.on {
+  background: #3fb950;
+  box-shadow: 0 0 8px #3fb95099;
+}
+
+.btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:hover  { opacity: 0.85; }
+.btn:active { transform: scale(0.97); }
+.btn-green { background: #238636; border-color: #2ea043; color: #fff; }
+.btn-red   { background: #b91c1c; border-color: #f85149; color: #fff; }
+.btn-big   { padding: 8px 22px; font-size: 13px; }
+
+.all-btns { display: flex; gap: 8px; }
+
+/* ── Log Toolbar ── */
+.log-toolbar {
+  background: #0d1117;
+  border-bottom: 1px solid #21262d;
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.toolbar-label { color: #8b949e; margin-right: 2px; }
+
+.filter {
+  padding: 2px 9px;
+  border-radius: 4px;
+  border: 1px solid #30363d;
+  background: transparent;
+  color: #8b949e;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter.on               { background: #21262d; color: #e6edf3; }
+.filter.f-server.on      { color: #79c0ff; border-color: #388bfd44; }
+.filter.f-client.on      { color: #7ee787; border-color: #3fb95044; }
+.filter.f-sys.on         { color: #aaa;    border-color: #484f5844; }
+
+.clear-btn {
+  padding: 2px 9px;
+  border-radius: 4px;
+  border: 1px solid #30363d;
+  background: transparent;
+  color: #8b949e;
+  font-size: 11px;
+  cursor: pointer;
+}
+.clear-btn:hover { background: #21262d; color: #e6edf3; }
+
+.scroll-lbl {
+  color: #8b949e;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── Log Panel ── */
+#log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0 8px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+#log::-webkit-scrollbar { width: 5px; }
+#log::-webkit-scrollbar-track { background: #0d1117; }
+#log::-webkit-scrollbar-thumb { background: #21262d; border-radius: 3px; }
+
+.line {
+  padding: 0 20px;
+  display: flex;
+  gap: 8px;
+}
+.line:hover { background: rgba(255,255,255,0.025); }
+.lt { color: #484f58; min-width: 74px; flex-shrink: 0; }
+.ls { min-width: 62px; flex-shrink: 0; font-weight: 700; }
+.lm { color: #c9d1d9; word-break: break-all; white-space: pre-wrap; }
+
+.src-server .ls { color: #79c0ff; }
+.src-client .ls { color: #7ee787; }
+.src-sys    .ls { color: #8b949e; }
+.type-err   .lm { color: #f85149; }
+
+/* ── Status Bar ── */
+.status-bar {
+  background: #161b22;
+  border-top: 1px solid #21262d;
+  padding: 4px 20px;
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: #8b949e;
+  flex-shrink: 0;
+}
+.status-item { display: flex; align-items: center; gap: 5px; }
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #484f58;
+}
+.status-dot.on { background: #3fb950; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span style="font-size:18px">💬</span>
+  <h1>KakaoTalk Web Manager</h1>
+  <div class="spacer"></div>
+  <button class="header-btn" onclick="openApp()">앱 열기 ↗</button>
+</div>
+
+<div class="controls">
+  <div class="card">
+    <div class="dot" id="dot-server"></div>
+    <div>
+      <div class="card-name">Server</div>
+      <div class="card-port">localhost:4000</div>
+    </div>
+    <button class="btn btn-green" onclick="api.start('server')">시작</button>
+    <button class="btn btn-red"   onclick="api.stop('server')">중지</button>
+  </div>
+
+  <div class="card">
+    <div class="dot" id="dot-client"></div>
+    <div>
+      <div class="card-name">Client</div>
+      <div class="card-port">localhost:3000</div>
+    </div>
+    <button class="btn btn-green" onclick="api.start('client')">시작</button>
+    <button class="btn btn-red"   onclick="api.stop('client')">중지</button>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="all-btns">
+    <button class="btn btn-green btn-big" onclick="api.start('all')">▶ 전체 시작</button>
+    <button class="btn btn-red   btn-big" onclick="api.stop('all')">■ 전체 중지</button>
+  </div>
+</div>
+
+<div class="log-toolbar">
+  <span class="toolbar-label">필터</span>
+  <button class="filter f-server on" onclick="toggleFilter(this,'server')">서버</button>
+  <button class="filter f-client on" onclick="toggleFilter(this,'client')">클라이언트</button>
+  <button class="filter f-sys on"    onclick="toggleFilter(this,'sys')">시스템</button>
+  <div class="spacer"></div>
+  <button class="clear-btn" onclick="clearLog()">로그 지우기</button>
+  <label class="scroll-lbl">
+    <input type="checkbox" id="asc" checked>
+    자동 스크롤
+  </label>
+</div>
+
+<div id="log"></div>
+
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-dot" id="sb-server"></div>
+    <span id="sb-server-txt">Server: 중지됨</span>
+  </div>
+  <div class="status-item">
+    <div class="status-dot" id="sb-client"></div>
+    <span id="sb-client-txt">Client: 중지됨</span>
+  </div>
+</div>
+
+<script>
+var filters = { server: true, client: true, sys: true };
+
+function openApp() {
+  api.openUrl('http://localhost:3000');
+}
+
+function toggleFilter(btn, name) {
+  filters[name] = !filters[name];
+  btn.classList.toggle('on', filters[name]);
+  document.querySelectorAll('.src-' + name).forEach(function(el) {
+    el.style.display = filters[name] ? '' : 'none';
+  });
+}
+
+function clearLog() {
+  document.getElementById('log').innerHTML = '';
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addLine(e) {
+  var logEl = document.getElementById('log');
+  var d = document.createElement('div');
+  d.className = 'line src-' + e.source + ' type-' + e.type;
+  if (!filters[e.source]) d.style.display = 'none';
+  d.innerHTML =
+    '<span class="lt">' + e.t + '</span>' +
+    '<span class="ls">[' + e.source + ']</span>' +
+    '<span class="lm">' + esc(e.msg) + '</span>';
+  logEl.appendChild(d);
+  if (logEl.children.length > 600) logEl.removeChild(logEl.firstChild);
+  if (document.getElementById('asc').checked) logEl.scrollTop = logEl.scrollHeight;
+}
+
+function updateStatus(s) {
+  document.getElementById('dot-server').className = 'dot' + (s.server ? ' on' : '');
+  document.getElementById('dot-client').className = 'dot' + (s.client ? ' on' : '');
+  document.getElementById('sb-server').className = 'status-dot' + (s.server ? ' on' : '');
+  document.getElementById('sb-client').className = 'status-dot' + (s.client ? ' on' : '');
+  document.getElementById('sb-server-txt').textContent = 'Server: ' + (s.server ? '실행 중' : '중지됨');
+  document.getElementById('sb-client-txt').textContent = 'Client: ' + (s.client ? '실행 중' : '중지됨');
+}
+
+api.onLog(addLine);
+api.onStatus(updateStatus);
+</script>
+</body>
+</html>
