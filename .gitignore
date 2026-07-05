@@ -54,3 +54,11 @@ coverage/
 .eslintcache
 .cache/
 .turbo/
+
+# ── Android 빌드 캐시 ──
+android-relay/.gradle/
+android-relay/app/build/
+android-relay/local.properties
+
+# ── 업로드 파일 ──
+server/uploads/

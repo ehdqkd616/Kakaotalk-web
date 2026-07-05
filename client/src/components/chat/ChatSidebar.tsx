@@ -7,6 +7,28 @@ import { authApi } from '@/lib/api';
 import { disconnectSocket } from '@/lib/socket';
 import RoomItem from './RoomItem';
 
+function CopyUserId({ userId }: { userId: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(userId).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      title="Android 릴레이 앱에 입력할 유저 ID"
+      className="w-full rounded-lg px-3 py-2 text-left transition hover:bg-kakao-sidebar-hover"
+    >
+      <p className="text-[10px] text-gray-500">유저 ID (Android 릴레이용)</p>
+      <p className="mt-0.5 truncate font-mono text-xs text-gray-300">
+        {copied ? '✓ 복사됨' : userId}
+      </p>
+    </button>
+  );
+}
+
 export default function ChatSidebar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -103,6 +125,13 @@ export default function ChatSidebar() {
           ))
         )}
       </div>
+
+      {/* 유저 ID (Android 릴레이용) */}
+      {user?.userId && (
+        <div className="border-t border-[#2A2D38] px-2 py-2">
+          <CopyUserId userId={user.userId} />
+        </div>
+      )}
     </aside>
   );
 }

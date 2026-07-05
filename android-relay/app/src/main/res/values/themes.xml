@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.KakaoRelay" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/kakao_yellow</item>
+        <item name="colorPrimaryVariant">@color/kakao_brown</item>
+        <item name="colorOnPrimary">@color/kakao_brown</item>
+        <item name="colorSecondary">@color/kakao_brown</item>
+        <item name="colorOnSecondary">@color/kakao_yellow</item>
+        <item name="android:windowBackground">@color/bg_gray</item>
+        <item name="android:statusBarColor">@color/kakao_brown</item>
+        <item name="android:navigationBarColor">@color/kakao_brown</item>
+    </style>
+</resources>
