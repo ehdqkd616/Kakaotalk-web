@@ -36,9 +36,11 @@ function TypingIndicator({ names }: { names: string[] }) {
   );
 }
 
+const EMPTY_TYPING: string[] = [];
+
 export default function MessageList({ roomId, messages }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
-  const typingUsers = useChatStore((s) => s.typingUsers[roomId] ?? []);
+  const typingUsers = useChatStore((s) => s.typingUsers[roomId] ?? EMPTY_TYPING);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

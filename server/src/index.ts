@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { config } from './config';
 import { initDB } from './db';
 import authRouter from './routes/auth';
@@ -41,6 +42,9 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// ── 정적 파일 (업로드 이미지) ──────────────────────────
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // ── 라우터 ────────────────────────────────────────────
 app.use('/api/auth', authRouter);

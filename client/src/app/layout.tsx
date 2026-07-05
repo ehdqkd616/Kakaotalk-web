@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,7 +15,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className="h-full bg-gray-100 antialiased">{children}</body>
+      <body className="h-full bg-gray-100 antialiased">
+        {children}
+        <Script
+          src="https://developers.kakao.com/sdk/js/kakao.min.js"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api';
 
@@ -8,10 +9,24 @@ const ERROR_MESSAGES: Record<string, string> = {
   server_error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
 };
 
-export default function LoginPage() {
+const KakaoIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-kakao-brown" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.477 2 2 5.918 2 10.773c0 3.11 1.857 5.845 4.67 7.479l-1.19 4.337a.25.25 0 0 0 .376.272L10.5 20.17A11.38 11.38 0 0 0 12 20.25c5.523 0 10-3.918 10-8.75S17.523 2 12 2z" />
+  </svg>
+);
+
+function ErrorBanner() {
   const params = useSearchParams();
   const errorCode = params.get('error');
+  if (!errorCode || !ERROR_MESSAGES[errorCode]) return null;
+  return (
+    <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+      {ERROR_MESSAGES[errorCode]}
+    </div>
+  );
+}
 
+export default function LoginPage() {
   const handleLogin = () => {
     window.location.href = authApi.loginUrl();
   };
@@ -36,25 +51,17 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* 에러 메시지 */}
-        {errorCode && ERROR_MESSAGES[errorCode] && (
-          <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-            {ERROR_MESSAGES[errorCode]}
-          </div>
-        )}
+        {/* 에러 메시지 - Suspense 필수 (Next.js 15) */}
+        <Suspense fallback={null}>
+          <ErrorBanner />
+        </Suspense>
 
         {/* 카카오 로그인 버튼 */}
         <button
           onClick={handleLogin}
           className="flex w-full items-center justify-center gap-3 rounded-xl bg-kakao-yellow py-3.5 text-sm font-semibold text-kakao-brown transition hover:brightness-95 active:scale-[0.98]"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-5 w-5 fill-kakao-brown"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M12 2C6.477 2 2 5.918 2 10.773c0 3.11 1.857 5.845 4.67 7.479l-1.19 4.337a.25.25 0 0 0 .376.272L10.5 20.17A11.38 11.38 0 0 0 12 20.25c5.523 0 10-3.918 10-8.75S17.523 2 12 2z" />
-          </svg>
+          <KakaoIcon />
           카카오 계정으로 로그인
         </button>
 

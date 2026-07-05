@@ -45,9 +45,9 @@ export default function RoomPage() {
     };
   }, [roomId, setMessages]);
 
-  const handleSend = async (content: string) => {
+  const handleSend = async (content: string, imageUrl?: string) => {
     try {
-      const { data } = await messagesApi.send(roomId, content);
+      const { data } = await messagesApi.send(roomId, content, imageUrl);
       addMessage(data);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };

@@ -29,8 +29,15 @@ export const messagesApi = {
   getRooms: () => api.get<ChatRoom[]>('/api/messages/rooms'),
   getMessages: (roomId: string) =>
     api.get<Message[]>(`/api/messages/${roomId}`),
-  send: (roomId: string, content: string) =>
-    api.post<Message>('/api/messages/send', { roomId, content }),
+  send: (roomId: string, content: string, image_url?: string, skipKakao?: boolean) =>
+    api.post<Message>('/api/messages/send', { roomId, content, image_url, skipKakao }),
+  uploadImage: (file: File) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return api.post<{ url: string }>('/api/messages/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export const relayApi = {

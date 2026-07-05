@@ -23,6 +23,7 @@ export interface Message {
   sender_name: string;
   senderProfile?: string;
   content: string;
+  image_url?: string | null;
   type: 'text' | 'image';
   direction: 'sent' | 'received';
   created_at: string;

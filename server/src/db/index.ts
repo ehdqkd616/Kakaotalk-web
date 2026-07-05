@@ -52,6 +52,19 @@ export function initDB(): void {
     CREATE INDEX IF NOT EXISTS idx_relay_user ON relay_devices(user_id);
   `);
 
+  // image_url 컬럼 마이그레이션 (기존 DB 호환)
+  try {
+    db.exec('ALTER TABLE messages ADD COLUMN image_url TEXT');
+  } catch {
+    // 이미 존재하는 경우 무시
+  }
+
+  // 업로드 디렉토리 생성
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
   console.log('[DB] SQLite 초기화 완료');
 }
 
