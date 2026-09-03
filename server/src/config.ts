@@ -18,7 +18,7 @@ export const config = {
       'dev-secret-please-change-in-production',
     expiresIn: '7d' as const,
   },
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
+  clientUrl: process.env.CLIENT_URL || 'http://localhost:3100',
   port: parseInt(process.env.PORT || '4000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 };

@@ -37,7 +37,7 @@ function killPort(port) {
 function startProcess(type) {
   if (procs[type]) return;
 
-  const port = type === 'server' ? 4000 : 3000;
+  const port = type === 'server' ? 4000 : 3100;
   killPort(port);
 
   const cwd = path.join(ROOT_DIR, type === 'server' ? 'server' : 'client');

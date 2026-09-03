@@ -218,10 +218,10 @@
     <div class="dot" id="dotClient"></div>
     <div class="card-info">
       <h3>프론트엔드 클라이언트</h3>
-      <p id="txtClient">중지됨 · :3000</p>
+      <p id="txtClient">중지됨 · :3100</p>
     </div>
     <div class="card-btns">
-      <button class="btn-icon" onclick="api.openUrl('http://localhost:3000')">브라우저</button>
+      <button class="btn-icon" onclick="api.openUrl('http://localhost:3100')">브라우저</button>
       <button class="btn-icon btn-run" id="btnClient" onclick="toggle('client')">시작</button>
     </div>
   </div>
@@ -268,7 +268,7 @@
     setDot('dotClient', s.client);
 
     document.getElementById('txtServer').textContent = s.server ? '실행 중 · :4000' : '중지됨 · :4000';
-    document.getElementById('txtClient').textContent = s.client ? '실행 중 · :3000' : '중지됨 · :3000';
+    document.getElementById('txtClient').textContent = s.client ? '실행 중 · :3100' : '중지됨 · :3100';
 
     setBtn(document.getElementById('btnServer'), s.server);
     setBtn(document.getElementById('btnClient'), s.client);

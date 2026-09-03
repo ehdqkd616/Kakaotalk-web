@@ -217,7 +217,7 @@ body {
     <div class="dot" id="dot-client"></div>
     <div>
       <div class="card-name">Client</div>
-      <div class="card-port">localhost:3000</div>
+      <div class="card-port">localhost:3100</div>
     </div>
     <button class="btn btn-green" onclick="api.start('client')">시작</button>
     <button class="btn btn-red"   onclick="api.stop('client')">중지</button>
@@ -261,7 +261,7 @@ body {
 var filters = { server: true, client: true, sys: true };
 
 function openApp() {
-  api.openUrl('http://localhost:3000');
+  api.openUrl('http://localhost:3100');
 }
 
 function toggleFilter(btn, name) {

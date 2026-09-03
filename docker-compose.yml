@@ -11,7 +11,7 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - CLIENT_URL=http://localhost:3000
+      - CLIENT_URL=http://localhost:3100
     volumes:
       - server_data:/app/data
     restart: unless-stopped
@@ -21,7 +21,7 @@ services:
       context: ./client
       dockerfile: Dockerfile
     ports:
-      - '3000:3000'
+      - '3100:3000'
     env_file:
       - .env
     environment:

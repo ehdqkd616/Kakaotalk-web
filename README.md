@@ -48,7 +48,7 @@ npm run install:all
 npm run dev
 ```
 
-- 클라이언트: http://localhost:3000
+- 클라이언트: http://localhost:3100
 - 서버 API: http://localhost:4000
 
 ### Docker로 실행
