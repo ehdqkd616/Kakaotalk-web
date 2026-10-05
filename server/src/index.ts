@@ -62,7 +62,7 @@ setupWebSocket(io);
 
 // ── 시작 ──────────────────────────────────────────────
 initDB();
-httpServer.listen(config.port, () => {
+httpServer.listen(config.port, config.host, () => {
   console.log(`[서버] http://localhost:${config.port} 에서 실행 중`);
   console.log(`[환경] ${config.nodeEnv}`);
   if (!config.kakao.restApiKey) {
