@@ -1,5 +1,7 @@
 # KakaoTalk Web Client
 
+> 🔗 **배포 주소:** https://kakao-web.hotgarlic.dedyn.io
+
 카카오톡 앱을 설치할 수 없는 PC 환경에서 웹 브라우저로 카카오톡 메시지를 송수신할 수 있는 웹 클라이언트입니다.
 
 ## 프로젝트 구조
