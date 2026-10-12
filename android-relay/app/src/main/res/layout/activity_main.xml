@@ -113,14 +113,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
-                        android:hint="@string/label_user_id"
+                        android:hint="@string/label_relay_token"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etUserId"
+                            android:id="@+id/etRelayToken"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="text"
+                            android:inputType="textPassword"
                             android:textSize="14sp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
@@ -129,7 +129,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
-                        android:text="💡 유저 ID는 웹 앱 사이드바 하단에서 확인할 수 있습니다"
+                        android:text="@string/hint_relay_token_where"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 

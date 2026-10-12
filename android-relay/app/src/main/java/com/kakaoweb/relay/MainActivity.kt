@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvPermissionStatus: TextView
     private lateinit var tvLog: TextView
     private lateinit var etServerUrl: TextInputEditText
-    private lateinit var etUserId: TextInputEditText
+    private lateinit var etRelayToken: TextInputEditText
     private lateinit var btnSave: MaterialButton
     private lateinit var btnPermission: MaterialButton
     private lateinit var btnClearLog: TextView
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         tvPermissionStatus = findViewById(R.id.tvPermissionStatus)
         tvLog = findViewById(R.id.tvLog)
         etServerUrl = findViewById(R.id.etServerUrl)
-        etUserId = findViewById(R.id.etUserId)
+        etRelayToken = findViewById(R.id.etRelayToken)
         btnSave = findViewById(R.id.btnSave)
         btnPermission = findViewById(R.id.btnPermission)
         btnClearLog = findViewById(R.id.btnClearLog)
@@ -65,8 +65,8 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("relay_config", MODE_PRIVATE)
 
         // 저장된 설정 불러오기
-        etServerUrl.setText(prefs.getString("SERVER_URL", "http://192.168.0.1:4000"))
-        etUserId.setText(prefs.getString("USER_ID", ""))
+        etServerUrl.setText(prefs.getString("SERVER_URL", "https://kakao-web.hotgarlic.dedyn.io"))
+        etRelayToken.setText(prefs.getString("RELAY_TOKEN", ""))
 
         // 장치 ID 초기화
         if (prefs.getString("DEVICE_ID", null) == null) {
@@ -79,12 +79,12 @@ class MainActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val url = etServerUrl.text?.toString()?.trimEnd('/') ?: ""
-            val uid = etUserId.text?.toString()?.trim() ?: ""
-            if (url.isBlank() || uid.isBlank()) {
+            val token = etRelayToken.text?.toString()?.trim() ?: ""
+            if (url.isBlank() || token.isBlank()) {
                 Toast.makeText(this, getString(R.string.toast_fill_fields), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            saveAndRegister(url, uid)
+            saveAndRegister(url, token)
         }
 
         btnPermission.setOnClickListener {
@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateStatusUI() {
         val prefs = getSharedPreferences("relay_config", MODE_PRIVATE)
         val hasConfig = !prefs.getString("SERVER_URL", "").isNullOrBlank()
-                && !prefs.getString("USER_ID", "").isNullOrBlank()
+                && !prefs.getString("RELAY_TOKEN", "").isNullOrBlank()
 
         if (hasConfig && isNotificationListenerEnabled()) {
             tvStatus.text = getString(R.string.status_connected)
@@ -141,14 +141,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveAndRegister(serverUrl: String, userId: String) {
+    private fun saveAndRegister(serverUrl: String, relayToken: String) {
         val prefs = getSharedPreferences("relay_config", MODE_PRIVATE)
         val deviceId = prefs.getString("DEVICE_ID", UUID.randomUUID().toString())!!
         val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
 
         prefs.edit()
             .putString("SERVER_URL", serverUrl)
-            .putString("USER_ID", userId)
+            .putString("RELAY_TOKEN", relayToken)
+            .remove("USER_ID")
             .apply()
 
         btnSave.isEnabled = false
@@ -158,12 +159,12 @@ class MainActivity : AppCompatActivity() {
             val success = try {
                 val json = JSONObject().apply {
                     put("deviceId", deviceId)
-                    put("userId", userId)
                     put("deviceName", deviceName)
                 }
                 val body = json.toString().toRequestBody("application/json".toMediaType())
                 val req = Request.Builder()
                     .url("$serverUrl/api/relay/register")
+                    .header("Authorization", "Bearer $relayToken")
                     .post(body)
                     .build()
                 val response = http.newCall(req).execute()

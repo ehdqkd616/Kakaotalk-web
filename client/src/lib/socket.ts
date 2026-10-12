@@ -9,7 +9,6 @@ export function getSocket(): Socket {
       autoConnect: false,
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
     });
   }
   return socket;

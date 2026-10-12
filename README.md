@@ -84,8 +84,9 @@ docker-compose up --build
 
 1. `android-relay/` 를 Android Studio로 열기
 2. 빌드 후 기기에 설치
-3. 앱 실행 → 서버 URL 입력 (예: `http://192.168.0.100:4000`)
-4. 카카오 사용자 ID 입력 (로그인 후 `/api/auth/me` 에서 확인)
+3. 앱 실행 → 서버 URL 입력 (예: `https://kakao-web.hotgarlic.dedyn.io`)
+4. 릴레이 토큰 입력 (웹 로그인 후 사이드바 하단 **릴레이 토큰 > 복사**)
+   - 토큰이 유출되면 사이드바에서 **재발급** → 기존 토큰과 등록 기기는 즉시 무효화됩니다.
 5. **설정 > 알림 접근** 에서 KakaoTalk Relay 허용
 
 ---

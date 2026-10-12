@@ -5,6 +5,9 @@ import { getSocket } from '@/lib/socket';
 import { messagesApi } from '@/lib/api';
 import { shareViaKakao } from '@/lib/kakaoShare';
 
+// 카카오 텍스트 메시지 템플릿 최대 길이
+const MAX_LENGTH = 200;
+
 interface Props {
   onSend: (content: string, imageUrl?: string) => Promise<void>;
   roomId: string;
@@ -76,14 +79,12 @@ export default function MessageInput({ onSend, roomId }: Props) {
 
     setSending(true);
     try {
-      // DB에 저장 (Kakao REST API 호출 없이)
-      await messagesApi.send(roomId, trimmed, undefined, true);
-      // Kakao JS SDK 공유 열기
-      shareViaKakao(trimmed);
-      handleReset();
+      // 전송 대기로만 등록하고, 공유창에서 실제로 보냈을 때만 기록됨 (카카오 웹훅)
+      const { data } = await messagesApi.createShare(roomId, trimmed);
+      if (shareViaKakao(trimmed, data.shareId)) handleReset();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      alert(e.response?.data?.error ?? '채팅 기록 저장에 실패했습니다.');
+      alert(e.response?.data?.error ?? '카톡 공유를 준비하지 못했습니다.');
     } finally {
       setSending(false);
     }
@@ -99,7 +100,7 @@ export default function MessageInput({ onSend, roomId }: Props) {
   const canSend = (!!text.trim() || !!imageFile) && !sending;
 
   return (
-    <div className="flex-shrink-0 border-t border-gray-200 bg-white px-5 py-4">
+    <div className="flex-shrink-0 border-t border-gray-200 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 md:px-5 md:py-4">
       {/* 메시지 입력 영역 (outlined Material-style) */}
       <div className="relative rounded border border-gray-300 transition-colors focus-within:border-kakao-brown">
         <span className="absolute -top-2.5 left-3 bg-white px-1 text-[11px] text-gray-500 select-none">
@@ -110,18 +111,18 @@ export default function MessageInput({ onSend, roomId }: Props) {
           onChange={(e) => { setText(e.target.value); emitTyping(); }}
           onKeyDown={handleKeyDown}
           placeholder="한번에 200자까지 전송 가능 (Shift+Enter: 줄바꿈)"
-          rows={4}
+          rows={3}
+          maxLength={MAX_LENGTH}
           disabled={sending}
-          className="w-full resize-none bg-transparent px-3 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:opacity-60"
+          className="w-full resize-none bg-transparent px-3 py-3 text-base text-gray-900 placeholder-gray-400 focus:outline-none disabled:opacity-60 md:text-sm"
           style={{ maxHeight: '160px' }}
         />
       </div>
 
       {/* 글자수 */}
-      <div className="mt-1.5 px-0.5">
-        <p className="text-[11px] text-gray-400">글자수</p>
-        <p className="text-sm font-medium text-gray-700">{text.length}</p>
-      </div>
+      <p className="mt-1 px-0.5 text-right text-[11px] text-gray-400">
+        {text.length} / {MAX_LENGTH}
+      </p>
 
       {/* 이미지 미리보기 */}
       {imagePreview && (
@@ -144,14 +145,14 @@ export default function MessageInput({ onSend, roomId }: Props) {
         </div>
       )}
 
-      <hr className="my-3 border-gray-200" />
+      <hr className="my-2 border-gray-200 md:my-3" />
 
       {/* 버튼 행 */}
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={handleReset}
           disabled={sending}
-          className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40"
+          className="rounded border border-gray-300 px-3 py-2 text-sm md:px-4 text-gray-600 transition hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40"
         >
           다시 쓰기
         </button>
@@ -159,7 +160,7 @@ export default function MessageInput({ onSend, roomId }: Props) {
         <button
           onClick={() => void handleKakaoShare()}
           disabled={!text.trim() || sending}
-          className={`rounded border px-4 py-2 text-sm font-medium transition ${
+          className={`rounded border px-3 py-2 text-sm font-medium transition md:px-4 ${
             text.trim() && !sending
               ? 'border-yellow-400 bg-kakao-yellow text-kakao-brown hover:brightness-95 active:brightness-90'
               : 'border-gray-200 bg-gray-50 text-gray-300'
@@ -171,7 +172,7 @@ export default function MessageInput({ onSend, roomId }: Props) {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={sending}
-          className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40"
+          className="rounded border border-gray-300 px-3 py-2 text-sm md:px-4 text-gray-600 transition hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40"
         >
           이미지 올리기
         </button>
@@ -188,7 +189,7 @@ export default function MessageInput({ onSend, roomId }: Props) {
         <button
           onClick={handleSend}
           disabled={!canSend}
-          className={`ml-auto rounded px-5 py-2 text-sm font-semibold transition ${
+          className={`ml-auto rounded px-4 py-2 text-sm font-semibold transition md:px-5 ${
             canSend
               ? 'bg-kakao-brown text-white hover:opacity-90 active:opacity-80'
               : 'bg-gray-100 text-gray-300'

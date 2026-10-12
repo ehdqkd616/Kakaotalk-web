@@ -32,7 +32,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-kakao-yellow to-yellow-300">
+    <div className="flex min-h-dvh items-center justify-center bg-gradient-to-b from-kakao-yellow to-yellow-300 px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white px-8 py-10 shadow-2xl">
         {/* 로고 */}
         <div className="mb-8 flex flex-col items-center">

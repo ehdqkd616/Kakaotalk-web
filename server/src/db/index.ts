@@ -47,6 +47,23 @@ export function initDB(): void {
       last_ping_at TEXT NOT NULL
     );
 
+    -- Android 릴레이 앱 인증 토큰 (사용자당 1개, 웹에서 재발급 가능)
+    CREATE TABLE IF NOT EXISTS relay_tokens (
+      user_id TEXT PRIMARY KEY,
+      token TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+
+    -- 카카오톡 공유창을 열었지만 아직 전송이 확인되지 않은 메시지 (웹훅 수신 시 messages로 이동)
+    CREATE TABLE IF NOT EXISTS pending_shares (
+      id TEXT PRIMARY KEY,
+      room_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      sender_name TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_messages_room ON messages(room_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_rooms_owner ON rooms(owner_id, last_message_at);
     CREATE INDEX IF NOT EXISTS idx_relay_user ON relay_devices(user_id);

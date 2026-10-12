@@ -29,8 +29,11 @@ export const messagesApi = {
   getRooms: () => api.get<ChatRoom[]>('/api/messages/rooms'),
   getMessages: (roomId: string) =>
     api.get<Message[]>(`/api/messages/${roomId}`),
-  send: (roomId: string, content: string, image_url?: string, skipKakao?: boolean) =>
-    api.post<Message>('/api/messages/send', { roomId, content, image_url, skipKakao }),
+  send: (roomId: string, content: string, image_url?: string) =>
+    api.post<Message>('/api/messages/send', { roomId, content, image_url }),
+  // 카톡 공유 전송 대기 등록 (실제 전송이 확인되면 서버가 기록 후 소켓으로 알려줌)
+  createShare: (roomId: string, content: string) =>
+    api.post<{ shareId: string }>('/api/messages/share', { roomId, content }),
   uploadImage: (file: File) => {
     const fd = new FormData();
     fd.append('image', file);
@@ -42,6 +45,8 @@ export const messagesApi = {
 
 export const relayApi = {
   getStatus: () => api.get('/api/relay/status'),
+  getToken: () => api.get<{ token: string }>('/api/relay/token'),
+  rotateToken: () => api.post<{ token: string }>('/api/relay/token/rotate'),
 };
 
 export default api;

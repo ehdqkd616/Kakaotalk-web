@@ -23,8 +23,8 @@ export default function MessageBubble({ message, showSender }: Props) {
         <span className="mb-0.5 flex-shrink-0 self-end text-[10px] text-gray-500">
           {formatTime(message.created_at)}
         </span>
-        <div className="max-w-[65%]">
-          <div className="bubble-sent rounded-2xl rounded-br-sm bg-kakao-my-bubble px-3.5 py-2 shadow-sm">
+        <div className="max-w-[80%] md:max-w-[65%]">
+          <div className="bubble-sent relative rounded-2xl rounded-br-sm bg-kakao-my-bubble px-3.5 py-2 shadow-sm">
             {message.image_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -61,12 +61,12 @@ export default function MessageBubble({ message, showSender }: Props) {
         )}
       </div>
 
-      <div className="flex max-w-[65%] flex-col gap-0.5">
+      <div className="flex max-w-[80%] flex-col gap-0.5 md:max-w-[65%]">
         {showSender && (
           <p className="ml-1 text-xs font-medium text-gray-600">{message.sender_name}</p>
         )}
         <div className="flex items-end gap-1.5">
-          <div className="bubble-received rounded-2xl rounded-bl-sm bg-white px-3.5 py-2 shadow-sm">
+          <div className="bubble-received relative rounded-2xl rounded-bl-sm bg-white px-3.5 py-2 shadow-sm">
             {message.image_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img

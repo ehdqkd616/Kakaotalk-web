@@ -22,7 +22,7 @@ export default function RootPage() {
   }, [router, setUser]);
 
   return (
-    <div className="flex h-screen items-center justify-center bg-kakao-yellow">
+    <div className="flex h-dvh items-center justify-center bg-kakao-yellow">
       <div className="flex flex-col items-center gap-4">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-kakao-brown border-t-transparent" />
         <p className="text-sm font-medium text-kakao-brown">불러오는 중...</p>

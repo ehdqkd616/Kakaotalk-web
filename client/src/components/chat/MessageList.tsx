@@ -80,7 +80,7 @@ export default function MessageList({ roomId, messages }: Props) {
   }
 
   return (
-    <div className="chat-bg flex-1 overflow-y-auto px-4 py-4">
+    <div className="chat-bg flex-1 overflow-y-auto px-3 py-4 md:px-4">
       {messages.length === 0 && (
         <div className="flex h-full items-center justify-center">
           <p className="text-sm text-gray-500">첫 번째 메시지를 보내보세요</p>

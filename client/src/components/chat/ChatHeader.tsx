@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ChatRoom } from '@/types';
 
 const TYPE_LABEL: Record<string, string> = {
@@ -13,7 +14,16 @@ interface Props {
 
 export default function ChatHeader({ room }: Props) {
   return (
-    <header className="flex items-center gap-3 border-b border-gray-200 bg-white px-5 py-3 shadow-sm">
+    <header className="flex flex-shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-3 py-3 shadow-sm md:px-5">
+      <Link
+        href="/chat"
+        aria-label="채팅 목록으로"
+        className="-ml-1 rounded-lg p-1.5 text-gray-600 transition hover:bg-gray-100 md:hidden"
+      >
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </Link>
       {room.profile_image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -26,8 +36,8 @@ export default function ChatHeader({ room }: Props) {
           {room.name[0] ?? '?'}
         </div>
       )}
-      <div>
-        <h1 className="text-sm font-semibold text-gray-900">{room.name}</h1>
+      <div className="min-w-0">
+        <h1 className="truncate text-sm font-semibold text-gray-900">{room.name}</h1>
         <p className="text-xs text-gray-400">{TYPE_LABEL[room.type] ?? room.type}</p>
       </div>
     </header>

@@ -3,33 +3,68 @@
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useChatStore } from '@/stores/useChatStore';
-import { authApi } from '@/lib/api';
+import { authApi, relayApi } from '@/lib/api';
 import { disconnectSocket } from '@/lib/socket';
 import RoomItem from './RoomItem';
 
-function CopyUserId({ userId }: { userId: string }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    navigator.clipboard.writeText(userId).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
+// Android 릴레이 앱에 입력할 연결 토큰 (화면에는 가리고 복사/재발급만 제공)
+function RelayToken() {
+  const [status, setStatus] = useState<string | null>(null);
+
+  const flash = (msg: string) => {
+    setStatus(msg);
+    setTimeout(() => setStatus(null), 1500);
   };
+
+  const copy = async (token: string, msg: string) => {
+    await navigator.clipboard.writeText(token);
+    flash(msg);
+  };
+
+  const handleCopy = async () => {
+    try {
+      const { data } = await relayApi.getToken();
+      await copy(data.token, '✓ 복사됨');
+    } catch {
+      flash('복사 실패');
+    }
+  };
+
+  const handleRotate = async () => {
+    if (!confirm('릴레이 토큰을 재발급할까요?\n기존 토큰으로 연결된 Android 기기는 즉시 끊기고, 새 토큰을 다시 입력해야 합니다.')) return;
+    try {
+      const { data } = await relayApi.rotateToken();
+      await copy(data.token, '✓ 재발급 후 복사됨');
+    } catch {
+      flash('재발급 실패');
+    }
+  };
+
   return (
-    <button
-      onClick={handleCopy}
-      title="Android 릴레이 앱에 입력할 유저 ID"
-      className="w-full rounded-lg px-3 py-2 text-left transition hover:bg-kakao-sidebar-hover"
-    >
-      <p className="text-[10px] text-gray-500">유저 ID (Android 릴레이용)</p>
-      <p className="mt-0.5 truncate font-mono text-xs text-gray-300">
-        {copied ? '✓ 복사됨' : userId}
-      </p>
-    </button>
+    <div className="flex items-center gap-1 px-3 py-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] text-gray-500">릴레이 토큰 (Android 릴레이용)</p>
+        <p className="mt-0.5 truncate font-mono text-xs text-gray-300">
+          {status ?? '••••••••••••'}
+        </p>
+      </div>
+      <button
+        onClick={() => void handleCopy()}
+        className="rounded px-2 py-1 text-[11px] text-gray-300 transition hover:bg-kakao-sidebar-hover"
+      >
+        복사
+      </button>
+      <button
+        onClick={() => void handleRotate()}
+        className="rounded px-2 py-1 text-[11px] text-gray-500 transition hover:bg-kakao-sidebar-hover hover:text-gray-300"
+      >
+        재발급
+      </button>
+    </div>
   );
 }
 
-export default function ChatSidebar() {
+export default function ChatSidebar({ className = '' }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, rooms } = useChatStore();
@@ -48,7 +83,7 @@ export default function ChatSidebar() {
   const activeRoomId = pathname.split('/chat/')[1] ?? '';
 
   return (
-    <aside className="flex w-72 flex-shrink-0 flex-col border-r border-[#2A2D38] bg-kakao-sidebar-bg">
+    <aside className={`${className} w-full flex-shrink-0 flex-col border-r border-[#2A2D38] bg-kakao-sidebar-bg md:w-72`}>
       {/* 프로필 헤더 */}
       <div className="flex items-center gap-3 border-b border-[#2A2D38] px-4 py-3">
         <div className="relative">
@@ -126,10 +161,10 @@ export default function ChatSidebar() {
         )}
       </div>
 
-      {/* 유저 ID (Android 릴레이용) */}
-      {user?.userId && (
+      {/* 릴레이 토큰 (Android 릴레이용) */}
+      {user && (
         <div className="border-t border-[#2A2D38] px-2 py-2">
-          <CopyUserId userId={user.userId} />
+          <RelayToken />
         </div>
       )}
     </aside>

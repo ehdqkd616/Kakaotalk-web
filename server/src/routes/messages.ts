@@ -6,7 +6,7 @@ import { requireAuth, type AuthRequest } from '../middleware/auth';
 import { getDB } from '../db';
 import * as kakao from '../services/kakao';
 import { config } from '../config';
-import { io } from '../index';
+import { recordSentMessage } from '../services/sentMessages';
 import type { ChatRoom, Message } from '../types';
 
 const router = Router();
@@ -110,12 +110,10 @@ router.get('/:roomId', (req: AuthRequest, res: Response) => {
 
 // POST /api/messages/send  → 메시지 발송
 router.post('/send', async (req: AuthRequest, res: Response) => {
-  const { roomId, content, image_url, type, skipKakao } = req.body as {
+  const { roomId, content, image_url } = req.body as {
     roomId: string;
     content?: string;
     image_url?: string;
-    type?: string;
-    skipKakao?: boolean;
   };
 
   if (!roomId || (!content?.trim() && !image_url)) {
@@ -136,9 +134,14 @@ router.post('/send', async (req: AuthRequest, res: Response) => {
   }
 
   const textContent = content?.trim() || '';
-  // 이미지만 있을 때는 Kakao API에 '[이미지]' 텍스트로 전송
-  const kakaoText = textContent || '[이미지]';
-  const msgType = image_url ? 'image' : (type ?? 'text');
+  const outgoing: kakao.OutgoingMessage = {
+    text: textContent,
+    // 업로드 이미지는 상대 경로(/uploads/..)이므로 카카오가 가져갈 수 있게 절대 주소로 변환
+    imageUrl: image_url
+      ? image_url.startsWith('http') ? image_url : `${config.clientUrl}${image_url}`
+      : undefined,
+    linkUrl: `${config.clientUrl}/chat/${roomId}`,
+  };
 
   const isKakaoTokenError = (e: unknown) => {
     const d = (e as { response?: { data?: { code?: number } } })?.response?.data;
@@ -147,13 +150,13 @@ router.post('/send', async (req: AuthRequest, res: Response) => {
 
   const sendViaKakao = async (accessToken: string) => {
     if (room.type === 'self') {
-      await kakao.sendMessageToMe(accessToken, kakaoText);
+      await kakao.sendMessageToMe(accessToken, outgoing);
     } else if (room.type === 'direct' && room.participant_id) {
-      await kakao.sendMessageToFriend(accessToken, [room.participant_id], kakaoText);
+      await kakao.sendMessageToFriend(accessToken, [room.participant_id], outgoing);
     }
   };
 
-  if (!skipKakao) try {
+  try {
     await sendViaKakao(req.user!.accessToken);
   } catch (err: unknown) {
     if (isKakaoTokenError(err) && req.user!.refreshToken) {
@@ -185,40 +188,48 @@ router.post('/send', async (req: AuthRequest, res: Response) => {
     }
   }
 
-  // DB 저장
-  const messageId = crypto.randomUUID();
-  const now = new Date().toISOString();
-  const displayContent = textContent || '[이미지]';
-
-  db.prepare(`
-    INSERT INTO messages (id, room_id, sender_id, sender_name, content, image_url, type, direction, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'sent', ?)
-  `).run(messageId, roomId, userId, req.user!.nickname, displayContent, image_url ?? null, msgType, now);
-
-  db.prepare(
-    'UPDATE rooms SET last_message = ?, last_message_at = ? WHERE id = ?',
-  ).run(displayContent, now, roomId);
-
-  const message: Message = {
-    id: messageId,
-    room_id: roomId,
-    sender_id: userId,
-    sender_name: req.user!.nickname,
-    content: displayContent,
-    image_url: image_url ?? null,
-    type: msgType as 'text' | 'image',
-    direction: 'sent',
-    created_at: now,
-  };
-
-  io.to(roomId).emit('new_message', message);
-  io.to(roomId).emit('room_updated', {
+  const message = recordSentMessage({
     roomId,
-    lastMessage: displayContent,
-    lastMessageAt: now,
+    userId,
+    senderName: req.user!.nickname,
+    content: textContent || '[이미지]',
+    imageUrl: image_url,
   });
 
   res.json(message);
+});
+
+// POST /api/messages/share  → 카카오톡 공유창을 열기 전에 '전송 대기' 상태로 등록
+// 실제 기록은 사용자가 공유를 완료해 카카오 웹훅(/api/kakao/share-webhook)이 도착했을 때만 남긴다.
+router.post('/share', (req: AuthRequest, res: Response) => {
+  const { roomId, content } = req.body as { roomId: string; content?: string };
+  const text = content?.trim();
+  if (!roomId || !text) {
+    res.status(400).json({ error: 'roomId와 content가 필요합니다.' });
+    return;
+  }
+
+  const db = getDB();
+  const userId = req.user!.userId;
+  const room = db
+    .prepare('SELECT id FROM rooms WHERE id = ? AND owner_id = ?')
+    .get(roomId, userId);
+  if (!room) {
+    res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' });
+    return;
+  }
+
+  // 하루 넘게 확인되지 않은 대기 항목은 공유를 취소한 것으로 보고 정리
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  db.prepare('DELETE FROM pending_shares WHERE created_at < ?').run(cutoff);
+
+  const shareId = crypto.randomUUID();
+  db.prepare(`
+    INSERT INTO pending_shares (id, room_id, user_id, sender_name, content, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(shareId, roomId, userId, req.user!.nickname, text, new Date().toISOString());
+
+  res.json({ shareId });
 });
 
 export default router;

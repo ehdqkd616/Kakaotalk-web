@@ -10,6 +10,7 @@ import { initDB } from './db';
 import authRouter from './routes/auth';
 import messagesRouter from './routes/messages';
 import relayRouter from './routes/relay';
+import kakaoWebhookRouter from './routes/kakaoWebhook';
 import { errorHandler } from './middleware/errorHandler';
 import { setupWebSocket } from './websocket/handler';
 
@@ -50,6 +51,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/auth', authRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/relay', relayRouter);
+app.use('/api/kakao', kakaoWebhookRouter);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

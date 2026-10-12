@@ -80,7 +80,7 @@ class KakaoNotificationListener : NotificationListenerService() {
 
         val prefs = getSharedPreferences("relay_config", MODE_PRIVATE)
         val serverUrl = prefs.getString("SERVER_URL", null) ?: return
-        val userId = prefs.getString("USER_ID", null) ?: return
+        val relayToken = prefs.getString("RELAY_TOKEN", null) ?: return
         val deviceId = prefs.getString("DEVICE_ID", android.os.Build.SERIAL) ?: "unknown"
         val timestamp = isoFormat.format(Date(sbn.postTime))
 
@@ -88,7 +88,7 @@ class KakaoNotificationListener : NotificationListenerService() {
             val success = sendToRelay(
                 serverUrl = serverUrl,
                 deviceId = deviceId,
-                userId = userId,
+                relayToken = relayToken,
                 sender = title,
                 roomName = title,
                 content = text,
@@ -108,7 +108,7 @@ class KakaoNotificationListener : NotificationListenerService() {
     private fun sendToRelay(
         serverUrl: String,
         deviceId: String,
-        userId: String,
+        relayToken: String,
         sender: String,
         roomName: String,
         content: String,
@@ -117,7 +117,6 @@ class KakaoNotificationListener : NotificationListenerService() {
         return try {
             val json = JSONObject().apply {
                 put("deviceId", deviceId)
-                put("userId", userId)
                 put("sender", sender)
                 put("roomName", roomName)
                 put("content", content)
@@ -126,6 +125,7 @@ class KakaoNotificationListener : NotificationListenerService() {
             val body = json.toString().toRequestBody("application/json".toMediaType())
             val request = Request.Builder()
                 .url("$serverUrl/api/relay/message")
+                .header("Authorization", "Bearer $relayToken")
                 .post(body)
                 .build()
             http.newCall(request).execute().use { response ->
@@ -144,6 +144,7 @@ class KakaoNotificationListener : NotificationListenerService() {
         val prefs = getSharedPreferences("relay_config", MODE_PRIVATE)
         val serverUrl = prefs.getString("SERVER_URL", null) ?: return
         val deviceId = prefs.getString("DEVICE_ID", null) ?: return
+        val relayToken = prefs.getString("RELAY_TOKEN", null) ?: return
 
         scope.launch {
             try {
@@ -151,6 +152,7 @@ class KakaoNotificationListener : NotificationListenerService() {
                     .toString().toRequestBody("application/json".toMediaType())
                 val req = Request.Builder()
                     .url("$serverUrl/api/relay/ping")
+                    .header("Authorization", "Bearer $relayToken")
                     .post(body)
                     .build()
                 http.newCall(req).execute().close()

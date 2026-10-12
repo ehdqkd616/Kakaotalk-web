@@ -77,24 +77,43 @@ export async function getFriends(
   return data;
 }
 
-export async function sendMessageToMe(
-  accessToken: string,
-  text: string,
-): Promise<void> {
-  const template = {
+export interface OutgoingMessage {
+  text: string;
+  imageUrl?: string;
+  // 메시지의 링크/버튼을 눌렀을 때 열릴 주소 (카카오 콘솔 > 제품 링크 관리 > 웹 도메인에 등록된 도메인이어야 함)
+  linkUrl: string;
+}
+
+// 이미지가 있으면 피드 템플릿(실제 이미지 표시), 없으면 텍스트 템플릿
+function buildTemplate({ text, imageUrl, linkUrl }: OutgoingMessage) {
+  const link = { web_url: linkUrl, mobile_web_url: linkUrl };
+  if (imageUrl) {
+    return {
+      object_type: 'feed',
+      content: {
+        title: text || '사진',
+        image_url: imageUrl,
+        link,
+      },
+      buttons: [{ title: '웹에서 보기', link }],
+    };
+  }
+  return {
     object_type: 'text',
     text,
-    link: {
-      web_url: 'https://developers.kakao.com',
-      mobile_web_url: 'https://developers.kakao.com',
-    },
-    button_title: '확인',
+    link,
+    button_title: '웹에서 보기',
   };
+}
 
+export async function sendMessageToMe(
+  accessToken: string,
+  message: OutgoingMessage,
+): Promise<void> {
   await axios.post(
     `${KAPI}/v2/api/talk/memo/default/send`,
     new URLSearchParams({
-      template_object: JSON.stringify(template),
+      template_object: JSON.stringify(buildTemplate(message)),
     }),
     {
       headers: {
@@ -108,23 +127,13 @@ export async function sendMessageToMe(
 export async function sendMessageToFriend(
   accessToken: string,
   receiverUuids: string[],
-  text: string,
+  message: OutgoingMessage,
 ): Promise<void> {
-  const template = {
-    object_type: 'text',
-    text,
-    link: {
-      web_url: 'https://developers.kakao.com',
-      mobile_web_url: 'https://developers.kakao.com',
-    },
-    button_title: '확인',
-  };
-
   await axios.post(
     `${KAPI}/v1/api/talk/friends/message/default/send`,
     new URLSearchParams({
       receiver_uuids: JSON.stringify(receiverUuids),
-      template_object: JSON.stringify(template),
+      template_object: JSON.stringify(buildTemplate(message)),
     }),
     {
       headers: {
